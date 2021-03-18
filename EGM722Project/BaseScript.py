@@ -1,27 +1,27 @@
-import pandas as pd
+#import pandas as pd
 import geopandas as gpd
 from cartopy.feature import ShapelyFeature
 import cartopy.crs as ccrs
-import matplotlib.patches as patches
-import matplotlib.lines as lines
+#import matplotlib.patches as patches
+#import matplotlib.lines as lines
 import matplotlib.pyplot as plt
-import rasterio as ras
+#import rasterio as ras
 
 #general template/workflow/to-do list:
 
 #load the datasets
-    #AONB
-    #NationalParks
-    #MajorCitiesandTowns
+AONB = gpd.read_file('data_files/AONB.shp')    #AONB
+NationalP = gpd.read_file('data_files/National_Parks_(December_2018)_Boundaries_GB_BGC.shp')    #NationalParks
+MSettlements = gpd.read_file('data_files/Major_Towns_and_Cities__December_2015__Boundaries.shp')    #MajorCitiesandTowns
     #Rivers
     #Roads(?)
 
-#define crs
+CRS = ccrs.UTM(30) #define crs
 
 #figure creation
-    #establish figure dimensions with plt
+Figure = plt.figure(figsize=(30, 30), edgecolor='k')    #establish figure dimensions with plt
     #define a scale bar
-    #define axes
+Axes = plt.axes(projection=ccrs.Mercator())    #define axes
     #define legend library
 
 #analysis idea:
@@ -33,11 +33,19 @@ import rasterio as ras
     #...
 
 #to figure:
-    #add NP and AONB
-    #add new rivers
+AONB_features = ShapelyFeature(AONB['geometry'], CRS, edgecolor='k', facecolor='green')    #add NP and AONB
+NationalParks = ShapelyFeature(NationalP['geometry'], CRS, facecolor='darkseagreen')    #add new rivers
+CitiesAndTowns = ShapelyFeature(MSettlements['geometry'], CRS, edgecolor='k', facecolor='dimgrey')
     #add settlement and road buffers
     #...
     #testing new branch
+
+xmin, ymin, xmax, ymax = NationalP.total_bounds
+
+Axes.set_extent([xmin, xmax, ymin, ymax], crs=CRS)
+Axes.add_feature(AONB_features)
+Axes.add_feature(NationalParks)
+Axes.add_feature(CitiesAndTowns)
 
 #output individual shapesfiles (if user wishes to manipulate further in GIS) -- may be redundant:
     #AONB.shp
@@ -47,4 +55,4 @@ import rasterio as ras
     #Roads.shp
 
 #output map figure of performed analysis in this script
-    #output map.png
+Figure.savefig('testfigure.png', dpi=300)    #output map.png
