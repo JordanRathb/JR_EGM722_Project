@@ -1,6 +1,7 @@
 #import pandas as pd
 import geopandas as gpd
 from cartopy.feature import ShapelyFeature
+from shapely.geometry import LineString, Polygon
 import cartopy.crs as ccrs
 #import matplotlib.patches as patches
 #import matplotlib.lines as lines
@@ -27,28 +28,32 @@ Axes = plt.axes(projection=ccrs.Mercator())    #define axes
     #define legend library
 
 #analysis idea:
-    #where rivers intersect with AONB and NP
-        #create buffer of rivers of x distance
-    #buffer/distance function of roads and settlements
-    #where buffers of rivers do not intersect with buffers of roads/settlements
-        #store rivers in list
-    #...
+SettlementBuffer = MSettlements.buffer(10000) #generate buffer around settlements with user defined distance
+    #extract rivers that are outside the buffer zones
+    #extract rivers that intersect with county polygons that are below a user defined threshold
+    #generate buffer around river lines
+    #clip county polygons to those that lay within the river buffers
+    #output to figure
 
 #to figure:
 AONB_features = ShapelyFeature(AONB['geometry'], CRS, edgecolor='k', facecolor='green') #add AONB
 NationalParks = ShapelyFeature(NationalP['geometry'], CRS, facecolor='darkseagreen') #add national parks
 CitiesAndTowns = ShapelyFeature(MSettlements['geometry'], CRS, edgecolor='k', facecolor='dimgrey') #add settlements
+CitiesAndTownsBuffer = ShapelyFeature(SettlementBuffer, CRS, edgecolor='r', alpha=0.5)
 PopulationDensity = ShapelyFeature(PopDens['geometry'], CRS, edgecolor='k', facecolor='lightsalmon') #add county polygons with popdens
 Water_courses = ShapelyFeature(Watercourses['geometry'], CRS, edgecolor='b') #add watercourses
 
 xmin, ymin, xmax, ymax = PopDens.total_bounds
 
 Axes.set_extent([xmin, xmax, ymin, ymax], crs=CRS)
-Axes.add_feature(CitiesAndTowns)
+
+
 Axes.add_feature(PopulationDensity)
+Axes.add_feature(CitiesAndTowns)
 Axes.add_feature(Water_courses)
 Axes.add_feature(AONB_features)
 Axes.add_feature(NationalParks)
+Axes.add_feature(CitiesAndTownsBuffer)
 
 #output individual shapesfiles (if user wishes to manipulate further in GIS):
     #AONB.shp
@@ -58,4 +63,4 @@ Axes.add_feature(NationalParks)
     #Roads.shp
 
 #output map figure of performed analysis in this script
-Figure.savefig('Test.png', dpi=300)    #output map.png
+#Figure.savefig('Test.png', dpi=300)    #output map.png
