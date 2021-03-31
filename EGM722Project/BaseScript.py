@@ -50,9 +50,19 @@ Settlementbuffers_gdf.crs = 'epsg:27700'  # define the crs of the settlement buf
 RiverExtractOutsideSettlement = gpd.overlay(Watercourses, Settlementbuffers_gdf, how='difference', keep_geom_type=False)  # select through difference where rivers do not overlay the buffers around settlements
 
 # extract rivers that intersect with county polygons that are below a user defined threshold
-# generate buffer around river lines
-# clip county polygons to those that lay within the river buffers
+PopDensitySelect = PopDens[PopDens['GB_dist__3'] > 360]  # select counties with a pop density above a certain threshold
+RiverExtractPopDens = gpd.overlay(RiverExtractOutsideSettlement, PopDensitySelect, how='difference', keep_geom_type=False)  # select rivers that lie outside of these counties
 
+# generate buffer around river lines
+RiverBuffer = bufferfunction(RiverExtractPopDens, 1000)  # generate a buffer around rivers outside of selected counties and distance from settlements
+RiverBuffer = gpd.GeoDataFrame(gpd.GeoSeries(RiverBuffer))  # convert the geoseries into a geodataframe
+RiverBuffer = RiverBuffer.rename(columns={0: 'geometry'}).set_geometry('geometry')  # rename the geom column from 0 to geometry
+
+# clip county polygons to those that lay within the river buffers
+ViableLand = gpd.overlay(PopDens, RiverBuffer, how='intersection', keep_geom_type=False)  # select land that is within the river buffers
+ViableLand = gpd.geoseries.GeoSeries([geom for geom in ViableLand.unary_union.geoms])  # merge land into one
+ViableLand = gpd.GeoDataFrame(gpd.GeoSeries(ViableLand))  # convert the geoseries into a geodataframe
+ViableLand = ViableLand.rename(columns={0: 'geometry'}).set_geometry('geometry')  # rename the geom column from 0 to geometry
 
 # output elements to shapely features to be loaded into the figure:
 AONB_features = ShapelyFeature(AONB['geometry'], CRS, edgecolor='k', facecolor='green')  # add AONB
@@ -62,6 +72,9 @@ CitiesAndTownsBuffer = ShapelyFeature(Settlementbuffers, CRS, edgecolor='k', alp
 PopulationDensity = ShapelyFeature(PopDens['geometry'], CRS, edgecolor='k', facecolor='lightsalmon')  # add county polygons with popdens
 Water_courses = ShapelyFeature(Watercourses['geometry'], CRS, edgecolor='b')  # add watercourses
 Water_coursesOS = ShapelyFeature(RiverExtractOutsideSettlement['geometry'], CRS, edgecolor='r')
+ViableLandShp = ShapelyFeature(ViableLand['geometry'], CRS, edgecolor='b', facecolor='springgreen')
+RiverBufferShp = ShapelyFeature(RiverBuffer['geometry'], CRS, facecolor='b')
+
 
 xmin, ymin, xmax, ymax = PopDens.total_bounds  # define the maximum extent of figure to the population density shapefile
 Axes.set_extent([xmin, xmax, ymin, ymax], crs=CRS)  # set the maximum extent of figure to the population density shapefile
@@ -71,6 +84,8 @@ Axes.add_feature(PopulationDensity)
 Axes.add_feature(CitiesAndTowns)
 Axes.add_feature(Water_courses)
 Axes.add_feature(Water_coursesOS)
+Axes.add_feature(RiverBufferShp)
+Axes.add_feature(ViableLandShp)
 Axes.add_feature(AONB_features)
 Axes.add_feature(NationalParks)
 Axes.add_feature(CitiesAndTownsBuffer)
