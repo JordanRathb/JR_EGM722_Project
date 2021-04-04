@@ -20,10 +20,9 @@ CRS = ccrs.UTM(29)  # define crs
 
 
 # figure creation
-Figure = plt.figure(figsize=(30, 30))  # establish figure dimensions with plt
-# define a scale bar
-Axes = plt.axes(projection=ccrs.Mercator())  # define axes
+Figure, Axes = plt.subplots(1, 1, figsize=(30, 30), subplot_kw=dict(projection=CRS))  # define figure and axes with a subplot for a Choropleth plot
 # define legend library
+# define a scale bar
 
 # analysis:
 
@@ -69,26 +68,24 @@ AONB_features = ShapelyFeature(AONB['geometry'], CRS, edgecolor='k', facecolor='
 NationalParks = ShapelyFeature(NationalP['geometry'], CRS, facecolor='darkseagreen')  # add national parks
 CitiesAndTowns = ShapelyFeature(MSettlements['geometry'], CRS, edgecolor='k', facecolor='dimgrey')  # add settlements
 CitiesAndTownsBuffer = ShapelyFeature(Settlementbuffers, CRS, edgecolor='k', alpha=0.5)  # add settlement buffers
-PopulationDensity = ShapelyFeature(PopDens['geometry'], CRS, edgecolor='k', facecolor='lightsalmon')  # add county polygons with popdens
 Water_courses = ShapelyFeature(Watercourses['geometry'], CRS, edgecolor='b')  # add watercourses
 Water_coursesOS = ShapelyFeature(RiverExtractOutsideSettlement['geometry'], CRS, edgecolor='r')
 ViableLandShp = ShapelyFeature(ViableLand['geometry'], CRS, edgecolor='b', facecolor='springgreen')
 RiverBufferShp = ShapelyFeature(RiverBuffer['geometry'], CRS, facecolor='b')
 
-
 xmin, ymin, xmax, ymax = PopDens.total_bounds  # define the maximum extent of figure to the population density shapefile
 Axes.set_extent([xmin, xmax, ymin, ymax], crs=CRS)  # set the maximum extent of figure to the population density shapefile
 
 # add features to the axes/figure
-Axes.add_feature(PopulationDensity)
+PopDens.plot(column='GB_dist__3', ax=Axes, vmin=50, vmax=1000, cmap='OrRd')  # add county polygons with graduation of colour for pop density
 Axes.add_feature(CitiesAndTowns)
-Axes.add_feature(Water_courses)
+# Axes.add_feature(Water_courses)
 Axes.add_feature(Water_coursesOS)
-Axes.add_feature(RiverBufferShp)
+# Axes.add_feature(RiverBufferShp)
 Axes.add_feature(ViableLandShp)
 Axes.add_feature(AONB_features)
 Axes.add_feature(NationalParks)
-Axes.add_feature(CitiesAndTownsBuffer)
+# Axes.add_feature(CitiesAndTownsBuffer)
 
 # output individual shapefiles (if user wishes to manipulate further in GIS):
 # AONB.shp
