@@ -8,12 +8,13 @@ import matplotlib.patches as patches
 # import matplotlib.lines as lines
 import matplotlib.pyplot as plt
 
+
 # load the datasets
-AONB = gpd.read_file('data_files/AONB_SE.shp')  # AONB
-NationalP = gpd.read_file('data_files/NationalParks_SE.shp')  # National Parks
-MSettlements = gpd.read_file('data_files/Settlements_SE.shp')  # Major Cities and Towns
-PopDens = gpd.read_file('data_files/PopDens_SE.shp')  # Population Density
-Watercourses = gpd.read_file('data_files/Watercourses_SE.shp')  # Rivers
+AONB = gpd.read_file('data_files/AONB_E.shp')  # AONB
+NationalP = gpd.read_file('data_files/NP_E.shp')  # National Parks
+MSettlements = gpd.read_file('data_files/Settlements_E.shp')  # Major Cities and Towns
+PopDens = gpd.read_file('data_files/PopDens_E.shp')  # Population Density
+Watercourses = gpd.read_file('data_files/Watercourses_E.shp')  # Rivers
 
 # set the crs of shapefiles/define the intended crs of output
 PopDens = PopDens.to_crs(epsg=27700)
@@ -22,24 +23,25 @@ CRS = ccrs.UTM(29)  # define crs
 
 # figure creation
 Figure, Axes = plt.subplots(1, 1, figsize=(30, 30), subplot_kw=dict(projection=CRS))  # define figure and axes with a subplot for a Choropleth plot
-# define legend library
 
+gridlines = Axes.gridlines(draw_labels=True,
+                           xlocs=[-8, -8.5, -9, -9.5, -10, -10.5],
+                           ylocs=[0, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5])
+gridlines.right_labels = False
+gridlines.bottom_labels = False
 
 def generate_handles(labels, colors, edge='k', alpha=1):
     # docstring
+    # define legend library
     lc = len(colors)  # get the length of the color list
     handles = []
     for i in range(len(labels)):
         handles.append(patches.Rectangle((0, 0), 1, 1, facecolor=colors[i % lc], edgecolor=edge, alpha=alpha))
     return handles
-# define a scale bar
-
-# analysis:
-
-# Buffer function:
 
 
 def bufferfunction(self, distance):
+    # Buffer function:
     # for docstring
     global buffer
     buffer = self.buffer(distance)
@@ -76,7 +78,7 @@ ViableLand = ViableLand.rename(columns={0: 'geometry'}).set_geometry('geometry')
 # output elements to shapely features to be loaded into the figure:
 AONB_features = ShapelyFeature(AONB['geometry'], CRS, edgecolor='k', facecolor='green')  # add AONB
 
-NationalParks = ShapelyFeature(NationalP['geometry'], CRS, facecolor='darkseagreen')  # add national parks
+NationalParks = ShapelyFeature(NationalP['geometry'], CRS, facecolor='darkseagreen', edgecolor='k')  # add national parks
 
 CitiesAndTowns = ShapelyFeature(MSettlements['geometry'], CRS, edgecolor='k', facecolor='dimgrey')  # add settlements
 
@@ -84,9 +86,9 @@ CitiesAndTownsBuffer = ShapelyFeature(Settlementbuffers, CRS, edgecolor='k', alp
 
 Water_courses = ShapelyFeature(Watercourses['geometry'], CRS, edgecolor='b')  # add watercourses
 
-Water_coursesOS = ShapelyFeature(RiverExtractOutsideSettlement['geometry'], CRS, edgecolor='r')
+ViableLandShp = ShapelyFeature(ViableLand['geometry'], CRS, edgecolor='k', facecolor='springgreen')
 
-ViableLandShp = ShapelyFeature(ViableLand['geometry'], CRS, edgecolor='b', facecolor='springgreen')
+Water_coursesOS = ShapelyFeature(RiverExtractOutsideSettlement['geometry'], CRS, edgecolor='r')
 
 RiverBufferShp = ShapelyFeature(RiverBuffer['geometry'], CRS, facecolor='b')
 
@@ -132,5 +134,6 @@ legend = Axes.legend(handles, labels, title='Legend', title_fontsize=30,
 # MajorCitiesandTowns.shp
 # Rivers.shp
 # Roads.shp
+
 
 Figure.savefig('Test.png', dpi=300)  # output map figure of performed analysis in this script
