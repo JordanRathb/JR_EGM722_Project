@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 
 
 # load the datasets
-AONB = gpd.read_file('data_files/AONB_E.shp')  # AONB
+AONB = gpd.read_file('data_files/AONB_E_W.shp')  # AONB
 NationalP = gpd.read_file('data_files/NP_E.shp')  # National Parks
 MSettlements = gpd.read_file('data_files/Settlements_E.shp')  # Major Cities and Towns
 PopDens = gpd.read_file('data_files/PopDens_E.shp')  # Population Density
@@ -28,7 +28,8 @@ gridlines = Axes.gridlines(draw_labels=True,
                            xlocs=[-8, -8.5, -9, -9.5, -10, -10.5],
                            ylocs=[0, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5])
 gridlines.right_labels = False
-gridlines.bottom_labels = False
+gridlines.bottom_labels = True
+
 
 def generate_handles(labels, colors, edge='k', alpha=1):
     # docstring
