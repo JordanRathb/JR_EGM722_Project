@@ -28,10 +28,10 @@ These can be installed within a ‘conda’ environment, via the “environment.
 4.	Click import and allow the program to install the necessary modules.
 
 ## Python IDE ##
-To be able to execute and edit the script, you’ll require a Python IDE to allow you to open the script. This project was developed within ‘PyCharm Community’, for which can be downloaded here: 
-https://www.jetbrains.com/pycharm/download/#section=windows
-It is vital to ensure that your ‘Conda’ environment within your IDE is established correctly, otherwise the required dependencies will not be identified. 
-If you are using PyCharm Community, this can be set up within the settings (Ctrl – Alt – S) where under ‘Project: Interpreter’ you can select an existing environment. This should be where you ‘Conda’ environment is set up. 
+	To be able to execute and edit the script, you’ll require a Python IDE to allow you to open the script. This project was developed within ‘PyCharm Community’, for which can be downloaded here: 
+	https://www.jetbrains.com/pycharm/download/#section=windows
+	It is vital to ensure that your ‘Conda’ environment within your IDE is established correctly, otherwise the required dependencies will not be identified. 
+	If you are using PyCharm Community, this can be set up within the settings (Ctrl – Alt – S) where under ‘Project: Interpreter’ you can select an existing environment. This should be where you ‘Conda’ environment is set up. 
 
-One the Anaconda environment is established, the modules should be loaded correctly and the script can now be executed.
-The script is set to use data located within the repository under a folder titled “data_files”. Here you can choose to replace these with your own dataset concerning the same features for your study region.
+	One the Anaconda environment is established, the modules should be loaded correctly and the script can now be executed.
+	The script is set to use data located within the repository under a folder titled “data_files”. Here you can choose to replace these with your own dataset concerning the same features for your study region.
