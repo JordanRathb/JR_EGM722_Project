@@ -21,9 +21,9 @@ MSettlements = MSettlements.to_crs(epsg=27700)
 
 CRS = ccrs.UTM(29)  # define crs
 
-
 # figure creation
-Figure, Axes = plt.subplots(1, 1, figsize=(10, 10), subplot_kw=dict(projection=CRS))  # define figure and axes with a subplot for a Choropleth plot
+# define figure and axes with a subplot for a Choropleth plot
+Figure, Axes = plt.subplots(1, 1, figsize=(10, 10), subplot_kw=dict(projection=CRS))
 
 xmin, ymin, xmax, ymax = PopDens.total_bounds  # define the maximum extent of figure to the population density shapefile
 Axes.set_extent([xmin, xmax, ymin, ymax], crs=CRS)  # set the maximum extent of figure to the population density shapefile
@@ -47,7 +47,8 @@ def scale_bar(axes, length, location=(0.85, 0.05), linewidth=3):
     Typical usage:
     scale_bax(axes, 100)
     """
-    llx0, llx1, lly0, lly1 = Axes.get_extent(ccrs.PlateCarree())  # retrieve the extent of the axes in PlateCarree projection
+    # retrieve the extent of the axes in PlateCarree projection
+    llx0, llx1, lly0, lly1 = Axes.get_extent(ccrs.PlateCarree())
     sbllx = (llx1 + llx0) / 2  # centre the scale bar in the middle of the map
     sblly = lly0 + (lly1 - lly0) * location[1]
     tmc = ccrs.TransverseMercator(sbllx, sblly)
@@ -77,8 +78,10 @@ def generate_handles(label, colors, edge='k', alpha=1):
         handle.append(patches.Rectangle((0, 0), 1, 1, facecolor=colors[i % legendcolors], edgecolor=edge, alpha=alpha))
     return handle
 
+# ----------------------------------------------------------------------------------------------------------------------
 
-def bufferfunction(self, distance):
+
+def buffer_function(self, distance):
     """
     Applies a buffering function to the inputted dataset.
 
@@ -87,39 +90,55 @@ def bufferfunction(self, distance):
     :return: the returned geometry buffers
 
     Typical usage:
-    buffers = bufferfunction(self, distance)
+    buffers = buffer_function(self, distance)
     """
-    global buffer
     buffer = self.buffer(distance)
     return buffer
 
 
+def conversion_function(self):
+    """
+    Converts a geoseries into a geodataframe.
+
+    :param self: geoseries to be converted
+
+    Typical usage:
+    variable = conversion_function(geoseries)
+    """
+    conversion = gpd.GeoDataFrame(gpd.GeoSeries(self))  # convert the geoseries into a geodataframe
+    # rename the geometry column from '0' to 'geometry'
+    conversion = conversion.rename(columns={0: 'geometry'}).set_geometry('geometry')
+    return conversion
+
+
 # generate settlement buffers
-buffer = bufferfunction(MSettlements, 10000)  # generate buffer around settlements with user defined distance
-Settlementbuffers = buffer  # define variable containing settlement buffers
-Settlementbuffers = gpd.geoseries.GeoSeries([geom for geom in Settlementbuffers.unary_union.geoms])  # merge overlapping buffers to one
-Settlementbuffers_gdf = gpd.GeoDataFrame(gpd.GeoSeries(Settlementbuffers))  # convert the geoseries into a geodataframe
-Settlementbuffers_gdf = Settlementbuffers_gdf.rename(columns={0: 'geometry'}).set_geometry('geometry')  # rename the geometry column from '0' to 'geometry'
-Settlementbuffers_gdf.crs = 'epsg:27700'  # define the crs of the settlement buffers to epsg = 27700
+Settlementbuffers = buffer_function(MSettlements, 10000)  # generate buffer around settlements with user defined distance
+Settlementbuffers = conversion_function(Settlementbuffers)
+Settlementbuffers.crs = 'epsg:27700'  # define the crs of the settlement buffers to epsg = 27700
 
 
 # extract rivers that are outside the buffer zones
-RiverExtractOutsideSettlement = gpd.overlay(Watercourses, Settlementbuffers_gdf, how='difference', keep_geom_type=False)  # select through difference where rivers do not overlay the buffers around settlements
+# select through difference where rivers do not overlay the buffers around settlements
+RiverExtractOutsideSettlement = gpd.overlay(Watercourses, Settlementbuffers, how='difference', keep_geom_type=False)
 
 # extract rivers that intersect with county polygons that are below a user defined threshold
 PopDensitySelect = PopDens[PopDens['GB_dist__3'] > 360]  # select counties with a pop density above a certain threshold
-RiverExtractPopDens = gpd.overlay(RiverExtractOutsideSettlement, PopDensitySelect, how='difference', keep_geom_type=False)  # select rivers that lie outside of these counties
+# select rivers that lie outside of these counties
+RiverExtractPopDens = gpd.overlay(RiverExtractOutsideSettlement, PopDensitySelect,
+                                  how='difference', keep_geom_type=False)
 
 # generate buffer around river lines
-RiverBuffer = bufferfunction(RiverExtractPopDens, 1000)  # generate a buffer around rivers outside of selected counties and distance from settlements
-RiverBuffer = gpd.GeoDataFrame(gpd.GeoSeries(RiverBuffer))  # convert the geoseries into a geodataframe
-RiverBuffer = RiverBuffer.rename(columns={0: 'geometry'}).set_geometry('geometry')  # rename the geom column from 0 to geometry
+# generate a buffer around rivers outside of selected counties and distance from settlements
+RiverBuffer = buffer_function(RiverExtractPopDens, 1000)
+RiverBuffer = conversion_function(RiverBuffer)
 
 # clip county polygons to those that lay within the river buffers
-ViableLand = gpd.overlay(PopDens, RiverBuffer, how='intersection', keep_geom_type=False)  # select land that is within the river buffers
+# select land that is within the river buffers
+ViableLand = gpd.overlay(PopDens, RiverBuffer, how='intersection', keep_geom_type=False)
 ViableLand = gpd.geoseries.GeoSeries([geom for geom in ViableLand.unary_union.geoms])  # merge land into one
-ViableLand = gpd.GeoDataFrame(gpd.GeoSeries(ViableLand))  # convert the geoseries into a geodataframe
-ViableLand = ViableLand.rename(columns={0: 'geometry'}).set_geometry('geometry')  # rename the geom column from 0 to geometry
+ViableLand = conversion_function(ViableLand)
+
+# ----------------------------------------------------------------------------------------------------------------------
 
 # output elements to shapely features to be loaded into the figure:
 AONB_features = ShapelyFeature(AONB['geometry'], CRS, edgecolor='k', facecolor='green')  # add AONB
@@ -132,13 +151,14 @@ Water_coursesOS = ShapelyFeature(RiverExtractOutsideSettlement['geometry'], CRS,
 RiverBufferShp = ShapelyFeature(RiverBuffer['geometry'], CRS, facecolor='b')
 
 
-# add features to the axes/figure
-colorbar = m_ax(Axes)
-cax = colorbar.append_axes("right", size="5%", pad=0.1, axes_class=plt.Axes)
+# define a colour bar for the pop density choropleth map
+color_bar = m_ax(Axes)
+cax = color_bar.append_axes("right", size="5%", pad=0.1, axes_class=plt.Axes)
+# add county polygons with graduation of colour for pop density
 PopDens.plot(column='GB_dist__3', ax=Axes, vmin=50, vmax=1000, cax=cax, cmap='OrRd',
-             legend=True, legend_kwds={'label': 'Population Density'})  # add county polygons with graduation of colour for pop density
+             legend=True, legend_kwds={'label': 'Population Density'})
 
-
+# add features to the axes/figure
 Axes.add_feature(CitiesAndTowns)
 Axes.add_feature(ViableLandShp)
 Axes.add_feature(Water_coursesOS)
