@@ -69,13 +69,13 @@ def scale_bar(axes, length, location=(0.85, 0.05), linewidth=3):
 scale_bar(Axes, 50)  # create a scale bar of 50 km
 
 
-def generate_handles(label, colors, edge='k', alpha=1):
+def generate_handles(label, colors, edge, alpha=1):
     # docstring
     # define legend library
     legendcolors = len(colors)  # get the length of the color list
     handle = []
     for i in range(len(label)):
-        handle.append(patches.Rectangle((0, 0), 1, 1, facecolor=colors[i % legendcolors], edgecolor=edge, alpha=alpha))
+        handle.append(patches.Rectangle((0, 0), 1, 1, facecolor=colors[i % legendcolors], edgecolor=edge[i % legendcolors], alpha=alpha))
     return handle
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -129,7 +129,7 @@ RiverExtractPopDens = gpd.overlay(RiverExtractOutsideSettlement, PopDensitySelec
 
 # generate buffer around river lines
 # generate a buffer around rivers outside of selected counties and distance from settlements
-RiverBuffer = buffer_function(RiverExtractPopDens, 1000)
+RiverBuffer = buffer_function(RiverExtractPopDens, 2000)
 RiverBuffer = conversion_function(RiverBuffer)
 
 # clip county polygons to those that lay within the river buffers
@@ -141,13 +141,13 @@ ViableLand = conversion_function(ViableLand)
 # ----------------------------------------------------------------------------------------------------------------------
 
 # output elements to shapely features to be loaded into the figure:
-AONB_features = ShapelyFeature(AONB['geometry'], CRS, edgecolor='k', facecolor='green')  # add AONB
-NationalParks = ShapelyFeature(NationalP['geometry'], CRS, facecolor='darkseagreen', edgecolor='k')  # add national parks
+AONB_features = ShapelyFeature(AONB['geometry'], CRS, edgecolor='gold', facecolor='green')  # add AONB
+NationalParks = ShapelyFeature(NationalP['geometry'], CRS, facecolor='darkgreen', edgecolor='gold')  # add national parks
 CitiesAndTowns = ShapelyFeature(MSettlements['geometry'], CRS, edgecolor='k', facecolor='dimgrey')  # add settlements
 CitiesAndTownsBuffer = ShapelyFeature(Settlementbuffers, CRS, edgecolor='k', alpha=0.5)  # add settlement buffers
-Water_courses = ShapelyFeature(Watercourses['geometry'], CRS, edgecolor='b')  # add watercourses
-ViableLandShp = ShapelyFeature(ViableLand['geometry'], CRS, edgecolor='k', facecolor='springgreen')
-Water_coursesOS = ShapelyFeature(RiverExtractOutsideSettlement['geometry'], CRS, edgecolor='b')
+Water_courses = ShapelyFeature(Watercourses['geometry'], CRS, edgecolor='paleturquoise')  # add watercourses
+ViableLandShp = ShapelyFeature(ViableLand['geometry'], CRS, facecolor='springgreen')
+Water_coursesOS = ShapelyFeature(RiverExtractOutsideSettlement['geometry'], CRS, edgecolor='darkslateblue')
 RiverBufferShp = ShapelyFeature(RiverBuffer['geometry'], CRS, facecolor='b')
 
 
@@ -155,7 +155,7 @@ RiverBufferShp = ShapelyFeature(RiverBuffer['geometry'], CRS, facecolor='b')
 color_bar = m_ax(Axes)
 cax = color_bar.append_axes("right", size="5%", pad=0.1, axes_class=plt.Axes)
 # add county polygons with graduation of colour for pop density
-PopDens.plot(column='GB_dist__3', ax=Axes, vmin=50, vmax=1000, cax=cax, cmap='OrRd',
+PopDens.plot(column='GB_dist__3', ax=Axes, vmin=50, vmax=1000, cax=cax, cmap='RdYlBu_r',
              legend=True, legend_kwds={'label': 'Population Density'})
 
 # add features to the axes/figure
@@ -166,15 +166,15 @@ Axes.add_feature(AONB_features)
 Axes.add_feature(NationalParks)
 
 # generate legend
-corridor_handle = generate_handles(['Wildlife Corridors'], ['springgreen'])
-river_handle = generate_handles(['Rivers'], ['b'])
-settlement_handle = generate_handles(['Settlements'], ['dimgrey'])
-NP_handle = generate_handles(['National Parks'], ['darkseagreen'])
-AONB_handle = generate_handles(['AONB'], ['green'])
+corridor_handle = generate_handles(['Wildlife Corridors'], ['springgreen'], ['k'])
+river_handle = generate_handles(['Rivers'], ['b'], ['k'])
+NP_handle = generate_handles(['National Parks'], ['darkseagreen'], ['gold'])
+AONB_handle = generate_handles(['AONB'], ['green'], ['gold'])
+settlement_handle = generate_handles(['Settlements'], ['dimgrey'], ['k'])
 
 labels = ['Rivers', 'Wildlife Corridors', 'National Parks', 'AONB', 'Settlements']
 
-handles = river_handle + corridor_handle + settlement_handle + AONB_handle + NP_handle
+handles = river_handle + corridor_handle + NP_handle + AONB_handle + settlement_handle
 legend = Axes.legend(handles, labels, title='Legend', title_fontsize=11,
                      fontsize=8, loc='upper left', frameon=True, framealpha=1)
 
