@@ -6,11 +6,11 @@ import matplotlib.patches as patches
 import matplotlib.pyplot as plt
 
 # load the datasets
-AONB = gpd.read_file('data_files/AONB_SE.shp')  # AONB
-NationalP = gpd.read_file('data_files/NationalParks_SE.shp')  # National Parks
-MSettlements = gpd.read_file('data_files/Settlements_SE.shp')  # Major Cities and Towns
-PopDens = gpd.read_file('data_files/PopDens_SE.shp')  # Population Density
-Watercourses = gpd.read_file('data_files/Watercourses_SE.shp')  # Rivers
+AONB = gpd.read_file('data_files/AONB_E_W.shp')  # AONB
+NationalP = gpd.read_file('data_files/NP_E.shp')  # National Parks
+MSettlements = gpd.read_file('data_files/Settlements_E.shp')  # Major Cities and Towns
+PopDens = gpd.read_file('data_files/PopDens_E.shp')  # Population Density
+Watercourses = gpd.read_file('data_files/Watercourses_E.shp')  # Rivers
 
 # set the crs of shapefiles/define the intended crs of output
 PopDens = PopDens.to_crs(epsg=27700)
@@ -122,7 +122,7 @@ Settlementbuffers.crs = 'epsg:27700'  # define the crs of the settlement buffers
 RiverExtractOutsideSettlement = gpd.overlay(Watercourses, Settlementbuffers, how='difference', keep_geom_type=False)
 
 # extract rivers that intersect with county polygons that are below a user defined threshold
-PopDensitySelect = PopDens[PopDens['GB_dist__3'] > 360]  # select counties with a pop density above a certain threshold
+PopDensitySelect = PopDens[PopDens['GB_dist__3'] > 200]  # select counties with a pop density above a certain threshold
 # select rivers that lie outside of these counties
 RiverExtractPopDens = gpd.overlay(RiverExtractOutsideSettlement, PopDensitySelect,
                                   how='difference', keep_geom_type=False)
@@ -135,8 +135,8 @@ RiverBuffer = conversion_function(RiverBuffer)
 # clip county polygons to those that lay within the river buffers
 # select land that is within the river buffers
 ViableLand = gpd.overlay(PopDens, RiverBuffer, how='intersection', keep_geom_type=False)
-ViableLand = gpd.geoseries.GeoSeries([geom for geom in ViableLand.unary_union.geoms])  # merge land into one
-ViableLand = conversion_function(ViableLand)
+# ViableLand = gpd.geoseries.GeoSeries([geom for geom in ViableLand.unary_union.geoms])  # merge land into one
+# ViableLand = conversion_function(ViableLand)
 
 # ----------------------------------------------------------------------------------------------------------------------
 
@@ -155,13 +155,13 @@ RiverBufferShp = ShapelyFeature(RiverBuffer['geometry'], CRS, facecolor='b')
 color_bar = m_ax(Axes)
 cax = color_bar.append_axes("right", size="5%", pad=0.1, axes_class=plt.Axes)
 # add county polygons with graduation of colour for pop density
-PopDens.plot(column='GB_dist__3', ax=Axes, vmin=50, vmax=1000, cax=cax, cmap='RdYlBu_r',
+PopDens.plot(column='GB_dist__3', ax=Axes, vmin=50, vmax=1000, cax=cax, cmap='autumn_r', edgecolor='k',
              legend=True, legend_kwds={'label': 'Population Density'})
 
 # add features to the axes/figure
 Axes.add_feature(CitiesAndTowns)
 Axes.add_feature(ViableLandShp)
-Axes.add_feature(Water_coursesOS)
+Axes.add_feature(Water_coursesOS, linewidth=0.02)
 Axes.add_feature(AONB_features)
 Axes.add_feature(NationalParks)
 
