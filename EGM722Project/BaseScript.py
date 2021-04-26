@@ -25,8 +25,8 @@ CRS = ccrs.UTM(29)  # define crs
 # define figure and axes with a subplot for a Choropleth plot
 Figure, Axes = plt.subplots(1, 1, figsize=(10, 10), subplot_kw=dict(projection=CRS))
 
-xmin, ymin, xmax, ymax = PopDens.total_bounds  # define the maximum extent of figure to the population density shapefile
-Axes.set_extent([xmin, xmax, ymin, ymax], crs=CRS)  # set the maximum extent of figure to the population density shapefile
+xmin, ymin, xmax, ymax = PopDens.total_bounds  # define the maximum figure extent to the population density shapefile
+Axes.set_extent([xmin, xmax, ymin, ymax], crs=CRS)
 
 gl = Axes.gridlines(draw_labels=False,
                     xlocs=[-8, -8.5, -9, -9.5, -10, -10.5, -11],
@@ -75,10 +75,11 @@ def generate_handles(label, colors, edge, alpha=1):
     legendcolors = len(colors)  # get the length of the color list
     handle = []
     for i in range(len(label)):
-        handle.append(patches.Rectangle((0, 0), 1, 1, facecolor=colors[i % legendcolors], edgecolor=edge[i % legendcolors], alpha=alpha))
+        handle.append(patches.Rectangle((0, 0), 1, 1, facecolor=colors[i % legendcolors],
+                                        edgecolor=edge[i % legendcolors], alpha=alpha))
     return handle
 
-# ----------------------------------------------------------------------------------------------------------------------
+# ----------------------------------------------Analysis----------------------------------------------------------------
 
 
 def buffer_function(self, distance):
@@ -112,7 +113,7 @@ def conversion_function(self):
 
 
 # generate settlement buffers
-Settlementbuffers = buffer_function(MSettlements, 10000)  # generate buffer around settlements with user defined distance
+Settlementbuffers = buffer_function(MSettlements, 10000)  # generate buffer around settlements with defined distance
 Settlementbuffers = conversion_function(Settlementbuffers)
 Settlementbuffers.crs = 'epsg:27700'  # define the crs of the settlement buffers to epsg = 27700
 
@@ -138,16 +139,16 @@ ViableLand = gpd.overlay(PopDens, RiverBuffer, how='intersection', keep_geom_typ
 # ViableLand = gpd.geoseries.GeoSeries([geom for geom in ViableLand.unary_union.geoms])  # merge land into one
 # ViableLand = conversion_function(ViableLand)
 
-# ----------------------------------------------------------------------------------------------------------------------
+# ----------------------------------------------Output------------------------------------------------------------------
 
 # output elements to shapely features to be loaded into the figure:
-AONB_features = ShapelyFeature(AONB['geometry'], CRS, edgecolor='gold', facecolor='green')  # add AONB
-NationalParks = ShapelyFeature(NationalP['geometry'], CRS, facecolor='darkgreen', edgecolor='gold')  # add national parks
-CitiesAndTowns = ShapelyFeature(MSettlements['geometry'], CRS, edgecolor='k', facecolor='dimgrey')  # add settlements
-CitiesAndTownsBuffer = ShapelyFeature(Settlementbuffers, CRS, edgecolor='k', alpha=0.5)  # add settlement buffers
-Water_courses = ShapelyFeature(Watercourses['geometry'], CRS, edgecolor='paleturquoise')  # add watercourses
-ViableLandShp = ShapelyFeature(ViableLand['geometry'], CRS, facecolor='springgreen')
-Water_coursesOS = ShapelyFeature(RiverExtractOutsideSettlement['geometry'], CRS, edgecolor='darkslateblue')
+AONB_features = ShapelyFeature(AONB['geometry'], CRS, edgecolor='darkgreen', facecolor='mediumseagreen')  # add AONB
+NationalParks = ShapelyFeature(NationalP['geometry'], CRS, edgecolor='darkgreen', facecolor='darkseagreen')  # national parks
+CitiesAndTowns = ShapelyFeature(MSettlements['geometry'], CRS, edgecolor='k', facecolor='dimgrey')  # settlements
+CitiesAndTownsBuffer = ShapelyFeature(Settlementbuffers, CRS, edgecolor='k', alpha=0.5)  # settlement buffers
+Water_courses = ShapelyFeature(Watercourses['geometry'], CRS, edgecolor='paleturquoise')  # watercourses
+ViableLandShp = ShapelyFeature(ViableLand['geometry'], CRS, facecolor='springgreen')  # wildlife corridors
+Water_coursesOS = ShapelyFeature(RiverExtractPopDens['geometry'], CRS, edgecolor='darkslateblue')
 RiverBufferShp = ShapelyFeature(RiverBuffer['geometry'], CRS, facecolor='b')
 
 
@@ -155,21 +156,21 @@ RiverBufferShp = ShapelyFeature(RiverBuffer['geometry'], CRS, facecolor='b')
 color_bar = m_ax(Axes)
 cax = color_bar.append_axes("right", size="5%", pad=0.1, axes_class=plt.Axes)
 # add county polygons with graduation of colour for pop density
-PopDens.plot(column='GB_dist__3', ax=Axes, vmin=50, vmax=1000, cax=cax, cmap='autumn_r', edgecolor='k',
+PopDens.plot(column='GB_dist__3', ax=Axes, vmin=50, vmax=1000, cax=cax, cmap='Reds', edgecolor='k', linewidth=0.2,
              legend=True, legend_kwds={'label': 'Population Density'})
 
 # add features to the axes/figure
 Axes.add_feature(CitiesAndTowns)
 Axes.add_feature(ViableLandShp)
-Axes.add_feature(Water_coursesOS, linewidth=0.02)
+Axes.add_feature(Water_coursesOS, linewidth=0.07)
 Axes.add_feature(AONB_features)
 Axes.add_feature(NationalParks)
 
 # generate legend
 corridor_handle = generate_handles(['Wildlife Corridors'], ['springgreen'], ['k'])
 river_handle = generate_handles(['Rivers'], ['b'], ['k'])
-NP_handle = generate_handles(['National Parks'], ['darkseagreen'], ['gold'])
-AONB_handle = generate_handles(['AONB'], ['green'], ['gold'])
+NP_handle = generate_handles(['National Parks'], ['darkseagreen'], ['darkgreen'])
+AONB_handle = generate_handles(['AONB'], ['mediumseagreen'], ['darkgreen'])
 settlement_handle = generate_handles(['Settlements'], ['dimgrey'], ['k'])
 
 labels = ['Rivers', 'Wildlife Corridors', 'National Parks', 'AONB', 'Settlements']
