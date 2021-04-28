@@ -29,8 +29,8 @@ xmin, ymin, xmax, ymax = PopDens.total_bounds  # define the maximum figure exten
 Axes.set_extent([xmin, xmax, ymin, ymax], crs=CRS)
 
 gl = Axes.gridlines(draw_labels=False,
-                    xlocs=[-8, -8.5, -9, -9.5, -10, -10.5, -11],
-                    ylocs=[0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4])
+                    xlocs=[-8, -8.5, -9, -9.5, -10, -10.5, -11, -11.5, -12, -12.5, 13],
+                    ylocs=[0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.6])
 gl.right_labels = False
 gl.bottom_labels = False
 
@@ -43,6 +43,8 @@ def scale_bar(axes, length, location=(0.85, 0.05), linewidth=3):
     :param length: the length of the scale bar, calculated from the extent of the axes (in km).
     :param location: the desired location from 0, 0 to 10, 10.
     :param linewidth: the width of scale bar
+
+    https://stackoverflow.com/questions/32333870/
 
     Typical usage:
     scale_bax(axes, 100)
@@ -123,7 +125,7 @@ Settlementbuffers.crs = 'epsg:27700'  # define the crs of the settlement buffers
 RiverExtractOutsideSettlement = gpd.overlay(Watercourses, Settlementbuffers, how='difference', keep_geom_type=False)
 
 # extract rivers that intersect with county polygons that are below a user defined threshold
-PopDensitySelect = PopDens[PopDens['GB_dist__3'] > 200]  # select counties with a pop density above a certain threshold
+PopDensitySelect = PopDens[PopDens['GB_dist__3'] > 175]  # select counties with a pop density above a certain threshold
 # select rivers that lie outside of these counties
 RiverExtractPopDens = gpd.overlay(RiverExtractOutsideSettlement, PopDensitySelect,
                                   how='difference', keep_geom_type=False)
@@ -145,11 +147,8 @@ ViableLand = gpd.overlay(PopDens, RiverBuffer, how='intersection', keep_geom_typ
 AONB_features = ShapelyFeature(AONB['geometry'], CRS, edgecolor='darkgreen', facecolor='mediumseagreen')  # add AONB
 NationalParks = ShapelyFeature(NationalP['geometry'], CRS, edgecolor='darkgreen', facecolor='darkseagreen')  # national parks
 CitiesAndTowns = ShapelyFeature(MSettlements['geometry'], CRS, edgecolor='k', facecolor='dimgrey')  # settlements
-CitiesAndTownsBuffer = ShapelyFeature(Settlementbuffers, CRS, edgecolor='k', alpha=0.5)  # settlement buffers
-Water_courses = ShapelyFeature(Watercourses['geometry'], CRS, edgecolor='paleturquoise')  # watercourses
 ViableLandShp = ShapelyFeature(ViableLand['geometry'], CRS, facecolor='springgreen')  # wildlife corridors
-Water_coursesOS = ShapelyFeature(RiverExtractPopDens['geometry'], CRS, edgecolor='darkslateblue')
-RiverBufferShp = ShapelyFeature(RiverBuffer['geometry'], CRS, facecolor='b')
+Water_coursesOS = ShapelyFeature(RiverExtractPopDens['geometry'], CRS, edgecolor='darkslateblue')  # water course
 
 
 # define a colour bar for the pop density choropleth map
@@ -168,7 +167,7 @@ Axes.add_feature(NationalParks)
 
 # generate legend
 corridor_handle = generate_handles(['Wildlife Corridors'], ['springgreen'], ['k'])
-river_handle = generate_handles(['Rivers'], ['b'], ['k'])
+river_handle = generate_handles(['Rivers'], ['darkslateblue'], ['k'])
 NP_handle = generate_handles(['National Parks'], ['darkseagreen'], ['darkgreen'])
 AONB_handle = generate_handles(['AONB'], ['mediumseagreen'], ['darkgreen'])
 settlement_handle = generate_handles(['Settlements'], ['dimgrey'], ['k'])
