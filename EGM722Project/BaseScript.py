@@ -28,6 +28,7 @@ Figure, Axes = plt.subplots(1, 1, figsize=(10, 10), subplot_kw=dict(projection=C
 xmin, ymin, xmax, ymax = PopDens.total_bounds  # define the maximum figure extent to the population density shapefile
 Axes.set_extent([xmin, xmax, ymin, ymax], crs=CRS)
 
+# establish gridlines of the map
 gl = Axes.gridlines(draw_labels=False,
                     xlocs=[-8, -8.5, -9, -9.5, -10, -10.5, -11, -11.5, -12, -12.5, 13],
                     ylocs=[0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.6])
@@ -72,8 +73,16 @@ scale_bar(Axes, 50)  # create a scale bar of 50 km
 
 
 def generate_handles(label, colors, edge, alpha=1):
-    # docstring
-    # define legend library
+    """
+
+    :param label: Legend title for feature on map output
+    :param colors: color relating to designated colour of feature on map output (must match)
+    :param edge: edge colour of legend key and feature
+    :param alpha: transparency of legend (set to 100% opaque)
+
+    Typical usage:
+    generate_handles(['Wildlife Corridors'], ['springgreen'], ['k'])
+    """
     legendcolors = len(colors)  # get the length of the color list
     handle = []
     for i in range(len(label)):
@@ -138,8 +147,6 @@ RiverBuffer = conversion_function(RiverBuffer)
 # clip county polygons to those that lay within the river buffers
 # select land that is within the river buffers
 ViableLand = gpd.overlay(PopDens, RiverBuffer, how='intersection', keep_geom_type=False)
-# ViableLand = gpd.geoseries.GeoSeries([geom for geom in ViableLand.unary_union.geoms])  # merge land into one
-# ViableLand = conversion_function(ViableLand)
 
 # ----------------------------------------------Output------------------------------------------------------------------
 
@@ -178,4 +185,4 @@ handles = river_handle + corridor_handle + NP_handle + AONB_handle + settlement_
 legend = Axes.legend(handles, labels, title='Legend', title_fontsize=11,
                      fontsize=8, loc='upper left', frameon=True, framealpha=1)
 
-Figure.savefig('Test.png', dpi=300)  # output map figure of performed analysis in this script
+Figure.savefig('Model_Output.png', dpi=300)  # output map figure of performed analysis in this script
